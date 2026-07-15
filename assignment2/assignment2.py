@@ -138,6 +138,12 @@ def write_sorted_list():
 
     return converted_list
 
+employees = None
+employee_id_column = None
+minutes1 = None
+minutes2 = None
+minutes_set = None
+minutes_list = None
 
 try:
     employees = read_employees()
