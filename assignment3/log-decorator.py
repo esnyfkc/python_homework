@@ -3,7 +3,7 @@ import logging
 # one time setup
 logger = logging.getLogger(__name__ + "_parameter_log")
 logger.setLevel(logging.INFO)
-logger.addHandler(logging.FileHandler("./decorator.log", "w"))
+logger.addHandler(logging.FileHandler("./decorator.log", "a"))
 
 
 def logger_decorator(func):
