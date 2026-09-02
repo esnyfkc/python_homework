@@ -40,20 +40,6 @@ def add_subscriber(cursor, name, address):
 
 
 def add_subscription(cursor, subscriber_id, magazine_id, expiration_date):
-    cursor.execute(
-        """
-        SELECT * FROM subscriptions
-        WHERE subscriber_id = ? AND magazine_id = ?
-        """,
-        (subscriber_id, magazine_id)
-    )
-
-    results = cursor.fetchall()
-
-    if len(results) > 0:
-        print("This subscription is already in the database.")
-        return
-
     try:
         cursor.execute(
             """
@@ -63,8 +49,8 @@ def add_subscription(cursor, subscriber_id, magazine_id, expiration_date):
             """,
             (subscriber_id, magazine_id, expiration_date)
         )
-    except sqlite3.Error as e:
-        print("Error adding subscription:", e)
+    except sqlite3.IntegrityError:
+        print("This subscription is already in the database.")
 
 try:
     # Connect to database
@@ -87,7 +73,8 @@ try:
             magazine_id INTEGER PRIMARY KEY,
             name TEXT NOT NULL UNIQUE,
             publisher_id INTEGER NOT NULL,
-            FOREIGN KEY (publisher_id) REFERENCES publishers (publisher_id)
+            FOREIGN KEY (publisher_id) 
+                REFERENCES publishers (publisher_id)
         )
     """)
 
@@ -107,8 +94,11 @@ try:
             subscriber_id INTEGER NOT NULL,
             magazine_id INTEGER NOT NULL,
             expiration_date TEXT NOT NULL,
-            FOREIGN KEY (subscriber_id) REFERENCES subscribers (subscriber_id),
-            FOREIGN KEY (magazine_id) REFERENCES magazines (magazine_id)
+            FOREIGN KEY (subscriber_id)
+                REFERENCES subscribers (subscriber_id),
+            FOREIGN KEY (magazine_id)
+                REFERENCES magazines (magazine_id),
+            UNIQUE (subscriber_id, magazine_id)
         )
     """)
 
