@@ -37,7 +37,7 @@ try:
         "line_item_id": "count",
         "total": "sum",
         "product_name": "first"
-    })
+    }).reset_index()
 
     print("\nGrouped Summary:")
     print(summary_df.head())
@@ -54,7 +54,7 @@ try:
         "order_summary.csv"
     )
 
-    summary_df.to_csv(output_file)
+    summary_df.to_csv(output_file, index=False)
 
     print(f"\nCSV saved to: {output_file}")
 

@@ -9,7 +9,20 @@ def add_publisher(cursor, name):
     except sqlite3.IntegrityError:
         print(f"{name} is already in the database.")
 
-def add_magazine(cursor, name, publisher_id):
+def add_magazine(cursor, name, publisher_name):
+    cursor.execute(
+        "SELECT publisher_id FROM publishers WHERE name = ?",
+        (publisher_name,)
+    )
+
+    result = cursor.fetchone()
+
+    if result is None:
+        print(f"Publisher {publisher_name} was not found.")
+        return
+
+    publisher_id = result[0]
+
     try:
         cursor.execute(
             "INSERT INTO magazines (name, publisher_id) VALUES (?, ?)",
@@ -20,13 +33,17 @@ def add_magazine(cursor, name, publisher_id):
 
 def add_subscriber(cursor, name, address):
     cursor.execute(
-        "SELECT * FROM subscribers WHERE name = ? AND address = ?",
+        """
+        SELECT subscriber_id
+        FROM subscribers
+        WHERE name = ? AND address = ?
+        """,
         (name, address)
     )
 
-    results = cursor.fetchall()
+    result = cursor.fetchone()
 
-    if len(results) > 0:
+    if result is not None:
         print(f"{name} at {address} is already in the database.")
         return
 
@@ -35,11 +52,36 @@ def add_subscriber(cursor, name, address):
             "INSERT INTO subscribers (name, address) VALUES (?, ?)",
             (name, address)
         )
-    except sqlite3.Error as e:
-        print("Error adding subscriber:", e)
+    except sqlite3.IntegrityError:
+        print(f"{name} at {address} is already in the database.")
 
 
-def add_subscription(cursor, subscriber_id, magazine_id, expiration_date):
+def add_subscription(cursor, subscriber_name, magazine_name, expiration_date):
+    # Find subscriber ID
+    cursor.execute(
+        "SELECT subscriber_id FROM subscribers WHERE name = ?",
+        (subscriber_name,)
+    )
+    subscriber = cursor.fetchone()
+
+    if subscriber is None:
+        print(f"Subscriber {subscriber_name} was not found.")
+        return
+
+    # Find magazine ID
+    cursor.execute(
+        "SELECT magazine_id FROM magazines WHERE name = ?",
+        (magazine_name,)
+    )
+    magazine = cursor.fetchone()
+
+    if magazine is None:
+        print(f"Magazine {magazine_name} was not found.")
+        return
+
+    subscriber_id = subscriber[0]
+    magazine_id = magazine[0]
+
     try:
         cursor.execute(
             """
@@ -50,8 +92,9 @@ def add_subscription(cursor, subscriber_id, magazine_id, expiration_date):
             (subscriber_id, magazine_id, expiration_date)
         )
     except sqlite3.IntegrityError:
-        print("This subscription is already in the database.")
-
+        print(
+            f"{subscriber_name} is already subscribed to {magazine_name}."
+        )
 try:
     # Connect to database
     conn = sqlite3.connect("../db/magazines.db")
@@ -83,7 +126,8 @@ try:
         CREATE TABLE IF NOT EXISTS subscribers (
             subscriber_id INTEGER PRIMARY KEY,
             name TEXT NOT NULL,
-            address TEXT NOT NULL
+            address TEXT NOT NULL,
+            UNIQUE (name, address)
         )
     """)
 
@@ -109,9 +153,9 @@ try:
     add_publisher(cursor, "Hearst Magazines")
 
     # Add magazines
-    add_magazine(cursor, "Rolling Stone", 1)
-    add_magazine(cursor, "Vogue", 2)
-    add_magazine(cursor, "Cosmopolitan", 3)
+    add_magazine(cursor, "Rolling Stone", "Penske Media Corporation")
+    add_magazine(cursor, "Vogue", "Condé Nast")
+    add_magazine(cursor, "Cosmopolitan", "Hearst Magazines")
 
     # Add subscribers
     add_subscriber(cursor, "Elif Yumuk", "123 Main St")
@@ -119,9 +163,9 @@ try:
     add_subscriber(cursor, "Esin Yufkaci", "2880 Scott Blv")
 
     # Add subscriptions
-    add_subscription(cursor, 1, 1, "2027-01-01")
-    add_subscription(cursor, 1, 2, "2027-02-02")
-    add_subscription(cursor, 2, 3, "2027-03-03")
+    add_subscription(cursor, "Elif Yumuk", "Rolling Stone", "2027-01-01")
+    add_subscription(cursor, "Elif Yumuk", "Vogue", "2027-02-02")
+    add_subscription(cursor, "Elif Yumuk", "Cosmopolitan", "2027-03-03")
 
     # Query 1: Retrieve all information from the subscribers table
     cursor.execute("SELECT * FROM subscribers")
@@ -143,7 +187,7 @@ try:
 
     # Query 3: Find magazines for a particular publisher
     cursor.execute("""
-        SELECT magazines.name, publishers.name
+        SELECT magazines.*
         FROM magazines
         JOIN publishers
         ON magazines.publisher_id = publishers.publisher_id
