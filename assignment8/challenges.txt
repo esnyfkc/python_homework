@@ -1,0 +1,5 @@
+One challenge I faced was finding the correct HTML elements and selectors for the data I wanted to scrape.
+ I used the browser developer tools to inspect the page and adjusted my selectors until I found the correct elements.
+
+I also had an issue with the OWASP page because my first XPath returned the wrong result.
+I corrected the page URL and tested the XPath again until it returned all 10 vulnerabilities.

@@ -1,0 +1,11 @@
+**Restricted Sections:**
+
+Wikipedia restricts access to areas such as `/w/`, `/api/`, `/trap/`, and `/wiki/Special:`. It also restricts certain deletion, copyright, administration, discussion, and noticeboard pages.
+
+**Specific User-Agent Rules:**
+
+Some user agents are completely blocked from crawling Wikipedia. These include MJ12bot, HTTrack, and wget. SemrushBot is permitted to crawl the site, but it must follow a crawl delay of 5 seconds.
+
+**Reflection:**
+
+The `robots.txt` file informs web crawlers which parts of a website they may or may not access. Following these rules helps reduce unnecessary server traffic and prevents crawlers from overloading the website or accessing restricted areas.
